@@ -31,6 +31,4 @@
  - Awkward Circle: 'a' or 'A' (Original Creation)
 
 
-- 
-
 Enjoy!!!
