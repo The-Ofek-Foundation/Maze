@@ -12,6 +12,7 @@ var animate = false;
 var animation, animation_on, animation_interval;
 var total_animation_time = 30;
 var custom_resolution = false;
+var show_start_end = true;
 
 var mazeui = document.getElementById("maze");
 var brush = mazeui.getContext("2d");
@@ -82,7 +83,9 @@ function draw_maze() {
   brush.fillStyle = "blue";
   brush.fill();
   brush.closePath();
-  draw_start_end();
+  
+  if (show_start_end)
+    draw_start_end();
 }
 
 function draw_start_end() {
@@ -219,7 +222,8 @@ function start_animation() {
       }
       brush.closePath();
       an_on++;
-      draw_start_end();
+      if (show_start_end)
+        draw_start_end();
   //     draw_maze();
     }
   }, total_animation_time * 900 / animation.length);
@@ -377,12 +381,12 @@ function getRandDs(x, y) {
           ran = Math.random() * 4 | 0;
           break;
         case "vertical":
-          if (Math.random() * 10 < style_intensity - 2)
+          if (Math.random() * 10 < style_intensity)
             ran = Math.random() * 2 | 0;
           else ran = Math.random() * 4 | 0;
           break;
         case "horizontal":
-          if (Math.random() * 10 < style_intensity - 2)
+          if (Math.random() * 10 < style_intensity)
             ran = Math.random() * 2 | 0 + 2;
           else ran = Math.random() * 4 | 0;
           break;
@@ -493,6 +497,8 @@ $('#form-new-game').submit(function() {
   
   maze_style = $('select[name="maze-style"]').val();
   style_intensity = parseFloat($('input[name="style-intensity"]').val());
+  
+  show_start_end = $('input[name="show-start"]').prop('checked');
   
   animate = $('input[name="animate"]').prop('checked');
   total_animation_time = parseFloat($('input[name="duration"]').val());
