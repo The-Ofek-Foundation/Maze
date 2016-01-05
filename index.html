@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta name="description" content="Generate a Maze online!">
+  <script src="https://code.jquery.com/jquery-2.1.4.js"></script>
+  <meta charset="utf-8">
+  <title>Maze Generator</title>
+  <link rel="stylesheet" type="text/css" href="styles.css">
+</head>
+<body>
+  <div class="header">
+    Back to <a href="/">The Ofek Foundation</a><br />
+    <div style="text-align: center;">
+      <button id="new-game">New Maze</button>
+    </div>
+  </div>
+  <canvas id="maze"></canvas>
+  
+  <div id="new-game-menu">
+    <h1 style="margin-top: 0px;">New Maze</h1>
+    <form id="form-new-game" action="">
+      Maze width:
+      <input type="number" name="width" min="5" step="2" value="21" required>
+      <br />
+      Maze height:
+      <input type="number" name="height" min="5" step="2" value="21" required>
+      <br />
+      Animate generation:
+      <input type="checkbox" name="animate">
+      <br />
+      Approximate animation duration (s):
+      <input type="number" name="duration" min="0" value="30">
+      <br />
+      Maze style:
+      <select name="maze-style" requred>
+        <option value="normal" selected>Normal</option>
+        <option value="vertical">Vertical</option>
+        <option value="horizontal">Horizontal</option>
+        <option value="checkerboard">Checkerboard</option>
+        <option value="inward x">Inward X</option>
+        <option value="square">Square</option>
+        <option value="awkward circle">Awkward Circle</option>
+        <option value="awkward circle square">Awkward Circle Square</option>
+      </select>
+      <br />
+      Style intensity:
+      <input type="range" name="style-intensity" min="5" max="9.7" step="0.1" val="8">
+      <br />
+      Custom resolution (for saving images):
+      <input type="checkbox" name="custom-resolution">
+      <br />
+      Block width in pixels (if custom resolution):
+      <input type="number" name="block-width" min="1" step="1" value="10">
+      <br />
+      <input type="submit" value="Generate Maze">
+      <button id="btn-new-game-cancel">Cancel</button>
+    </form>
+  </div>
+</body>
+  <script src="script.js"></script>
+</html>
