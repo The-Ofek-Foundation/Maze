@@ -13,6 +13,7 @@ var animation, animation_on, animation_interval;
 var total_animation_time = 30;
 var custom_resolution = false;
 var show_start_end = true;
+var visited, correct_path;
 
 var mazeui = document.getElementById("maze");
 var brush = mazeui.getContext("2d");
@@ -83,6 +84,17 @@ function draw_maze() {
   brush.fillStyle = "blue";
   brush.fill();
   brush.closePath();
+  
+  if (visited) {
+    brush.beginPath();
+    for (i = 0; i < maze.length; i++)
+      for (a = 0; a < maze[i].length; a++)
+        if (correct_path[i][a])
+          rect(i, a);
+    brush.fillStyle = "yellow";
+    brush.fill();
+    brush.closePath();
+  }
   
   if (show_start_end)
     draw_start_end();
@@ -245,6 +257,7 @@ function generateMaze() {
     for (var a = 0; a < maze[i].length; a++)
       maze[i][a] = 1;
   }
+  visited = false;
   if (animate)
     animation = new Array(dimensions[0] * dimensions[1] / 2 | 0);
   animation_on = 0;
@@ -459,6 +472,55 @@ function awkwardCircleVertical(x, y) {
   return relx < y !== x > maze.length - rely;
 }
 
+function solve_maze() {
+  var already = visited;
+  visited = new Array(maze.length);
+  correct_path = new Array(maze.length);
+  for (var i = 0; i < maze.length; i++) {
+    visited[i] = new Array(maze[i].length);
+    correct_path[i] = new Array(maze[i].length);
+    for (var a = 0; a < maze[i].length; a++) {
+      visited[i][a] = false;
+      correct_path[i][a] = false;
+    }
+  }
+  if (!already)
+    solveMazeRecursive(start_maze[0], start_maze[1]);
+  else visited = false;
+  draw_maze();
+}
+
+function solveMazeRecursive(row, col)	{
+		if (maze[row][col] !== 0 || visited[row][col])
+          return false;
+        if (row == end_maze[0] && col == end_maze[1]) {
+          correct_path[row][col] = true;
+          return true;
+        }
+		visited[row][col] = true;
+		if (row !== 0)	
+			if (solveMazeRecursive(row - 1, col)) {
+				correct_path[row][col] = true;
+				return true;
+			}
+		if (row != maze.length - 1)
+			if (solveMazeRecursive(row + 1, col)) {
+				correct_path[row][col] = true;
+				return true;
+			}
+		if (col !== 0) 
+			if (solveMazeRecursive(row, col - 1)) {
+				correct_path[row][col] = true;
+				return  true;
+			}
+		if (col != maze[col].length - 1)
+			if (solveMazeRecursive(row, col + 1)) {
+				correct_path[row][col] = true;
+				return true;
+			}
+		return false;
+	}
+
 function shuffle(array) {
   var currentIndex = array.length, temporaryValue, randomIndex;
 
@@ -483,6 +545,7 @@ function show_new_game_menu() {
 }
 
 $('#new-game').click(show_new_game_menu);
+$('#solve-maze').click(solve_maze);
 
 var dont_submit;
 
