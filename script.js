@@ -513,7 +513,7 @@ function solveMazeRecursive(row, col)	{
 				correct_path[row][col] = true;
 				return  true;
 			}
-		if (col != maze[col].length - 1)
+		if (col != maze[0].length - 1)
 			if (solveMazeRecursive(row, col + 1)) {
 				correct_path[row][col] = true;
 				return true;
