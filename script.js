@@ -13,6 +13,7 @@ var animation, animation_on, animation_interval;
 var total_animation_time = 30;
 var custom_resolution = false;
 var show_start_end = true;
+var thin_maze = false;
 var visited, correct_path;
 
 var mazeui = document.getElementById("maze");
@@ -22,8 +23,8 @@ $(document).ready(function() {
   docwidth = $(window).outerWidth(true);
   docheight = $(window).outerHeight(true);
   mazewidth = mazeheight = docwidth < docheight ? docwidth:docheight;
-  dimensions[0] = 21;
-  dimensions[1] = 21;
+  dimensions[0] = 23;
+  dimensions[1] = 23;
   
   resize_maze();
   generateMaze();
@@ -65,6 +66,10 @@ function clearMaze() {
 }
 
 function draw_maze() {
+  if (thin_maze) {
+    draw_maze2();
+    return;
+  }
   var i, a;
   clearMaze();
   brush.beginPath();
@@ -100,6 +105,43 @@ function draw_maze() {
     draw_start_end();
 }
 
+function draw_maze2() {
+  var i, a;
+  clearMaze();
+  
+  if (visited) {
+    brush.beginPath();
+    for (i = 0; i < maze.length; i++)
+      for (a = 0; a < maze[i].length; a++)
+        if (correct_path[i][a])
+          rect(i, a);
+    brush.fillStyle = "yellow";
+    brush.fill();
+    brush.closePath();
+  }
+  
+  if (show_start_end)
+    draw_start_end2();
+  
+  brush.beginPath();
+  for (i = 1; i < maze.length; i+=2)
+    for (a = 0; a < maze[i].length; a++)
+      if (maze[i][a] == 1) {
+        brush.moveTo(i * block_width - block_width, a * block_width);
+        brush.lineTo(i * block_width + block_width, a * block_width);
+      }
+  
+  for (i = 0; i < maze.length; i++)
+    for (a = 1; a < maze[i].length; a+=2)
+      if (maze[i][a] == 1) {
+        brush.moveTo(i * block_width, a * block_width - block_width);
+        brush.lineTo(i * block_width, a * block_width + block_width);
+      }
+  brush.strokeStyle = "black";
+  brush.stroke();
+  brush.closePath();
+}
+
 function draw_start_end() {
   brush.beginPath();
   rect(start_maze[0], start_maze[1]);
@@ -109,6 +151,20 @@ function draw_start_end() {
   
   brush.beginPath();
   rect(end_maze[0], end_maze[1]);
+  brush.fillStyle = "red";
+  brush.fill();
+  brush.closePath();
+}
+
+function draw_start_end2() {
+  brush.beginPath();
+  brush.rect(start_maze[0] * block_width - block_width / 2, start_maze[1] * block_width - block_width / 2, block_width, block_width);
+  brush.fillStyle = "green";
+  brush.fill();
+  brush.closePath();
+  
+  brush.beginPath();
+  brush.rect(end_maze[0] * block_width - block_width / 2, end_maze[1] * block_width - block_width / 2, block_width, block_width);
   brush.fillStyle = "red";
   brush.fill();
   brush.closePath();
@@ -126,8 +182,10 @@ function start_animation() {
   maze[animation_x][animation_y] = 2;
   draw_maze();
   animation_interval = setInterval(function() {
-    if (animation[an_on] === undefined)
+    if (animation[an_on] === undefined) {
       stop_animation();
+      draw_maze();
+    }
     else {
       brush.beginPath();
       switch (animation[an_on]) {
@@ -235,7 +293,9 @@ function start_animation() {
       brush.closePath();
       an_on++;
       if (show_start_end)
-        draw_start_end();
+        if (thin_maze)
+          draw_start_end2();
+        else draw_start_end();
   //     draw_maze();
     }
   }, total_animation_time * 900 / animation.length);
@@ -246,7 +306,9 @@ function stop_animation() {
 }
 
 function rect(x, y) {
-  brush.rect(x * block_width, y * block_width, block_width, block_width);
+  if (thin_maze)
+    brush.rect((x - 1) * block_width + 1, (y - 1) * block_width + 1, block_width * 2 - 2, block_width * 2 - 2);
+  else brush.rect(x * block_width, y * block_width, block_width, block_width);
 }
 
 function generateMaze() {
@@ -464,10 +526,9 @@ function getRandDs(x, y) {
 function awkwardCircleVertical(x, y) {
   var deltaX = Math.abs(x - maze.length / 2);
   var deltaY = Math.abs(y - maze[x].length / 2);
-  var delta = Math.sqrt(Math.pow(deltaX, 2) + Math.pow(deltaY, 2));
   var relx = x * maze[y].length / maze.length;
   var rely = y * maze.length / maze[y].length;
-  if ((relx < y === x > maze.length - rely) && delta < maze[y].length / 2 || (relx < y !== x > maze.length - rely) && delta < maze.length / 2)
+  if (Math.pow(deltaX, 2) / Math.pow(dimensions[0] / 2 - 0.5, 2) + Math.pow(deltaY, 2) / Math.pow(dimensions[1] / 2 - 0.5, 2) <= 1)
     return relx < y === x > maze.length - rely;
   return relx < y !== x > maze.length - rely;
 }
@@ -562,6 +623,7 @@ $('#form-new-game').submit(function() {
   style_intensity = parseFloat($('input[name="style-intensity"]').val());
   
   show_start_end = $('input[name="show-start"]').prop('checked');
+  thin_maze = $('input[name="thin-maze"]').prop('checked');
   
   animate = $('input[name="animate"]').prop('checked');
   total_animation_time = parseFloat($('input[name="duration"]').val());
