@@ -15,6 +15,7 @@ var custom_resolution = false;
 var show_start_end = true;
 var thin_maze = false;
 var visited, correct_path;
+var dead_visited;
 
 var mazeui = document.getElementById("maze");
 var brush = mazeui.getContext("2d");
@@ -319,7 +320,7 @@ function generateMaze() {
     for (var a = 0; a < maze[i].length; a++)
       maze[i][a] = 1;
   }
-  visited = false;
+  visited = dead_visited = false;
   if (animate)
     animation = new Array(dimensions[0] * dimensions[1] / 2 | 0);
   animation_on = 0;
@@ -552,35 +553,90 @@ function solve_maze() {
 }
 
 function solveMazeRecursive(row, col)	{
-		if (maze[row][col] !== 0 || visited[row][col])
-          return false;
-        if (row == end_maze[0] && col == end_maze[1]) {
-          correct_path[row][col] = true;
-          return true;
-        }
-		visited[row][col] = true;
-		if (row !== 0)	
-			if (solveMazeRecursive(row - 1, col)) {
-				correct_path[row][col] = true;
-				return true;
-			}
-		if (row != maze.length - 1)
-			if (solveMazeRecursive(row + 1, col)) {
-				correct_path[row][col] = true;
-				return true;
-			}
-		if (col !== 0) 
-			if (solveMazeRecursive(row, col - 1)) {
-				correct_path[row][col] = true;
-				return  true;
-			}
-		if (col != maze[0].length - 1)
-			if (solveMazeRecursive(row, col + 1)) {
-				correct_path[row][col] = true;
-				return true;
-			}
-		return false;
-	}
+  if (row == end_maze[0] && col == end_maze[1]) {
+    correct_path[row][col] = true;
+    return true;
+  }
+  visited[row][col] = true;
+  if (maze[row-1][col] === 0 && !visited[row-1][col])
+    if (solveMazeRecursive(row - 1, col)) {
+      correct_path[row][col] = true;
+      return true;
+    }
+  if (maze[row+1][col] === 0 && !visited[row+1][col])
+    if (solveMazeRecursive(row + 1, col)) {
+      correct_path[row][col] = true;
+      return true;
+    }
+  if (maze[row][col-1] === 0 && !visited[row][col-1])
+    if (solveMazeRecursive(row, col - 1)) {
+      correct_path[row][col] = true;
+      return  true;
+    }
+  if (maze[row][col+1] === 0 && !visited[row][col+1])
+    if (solveMazeRecursive(row, col + 1)) {
+      correct_path[row][col] = true;
+      return true;
+    }
+  return false;
+}
+
+function remove_dead_ends(threshold) {
+  dead_visited = new Array(maze.length);
+  for (var i = 0; i < maze.length; i++) {
+    dead_visited[i] = new Array(maze[i].length);
+    for (var a = 0; a < maze[i].length; a++)
+      dead_visited[i][a] = false;
+  }
+  remove_dead_ends_recursive(start_maze[0], start_maze[1], threshold);
+  draw_maze();
+}
+
+function remove_dead_ends_recursive(row, col, chance)	{
+  dead_visited[row][col] = true;
+  if (adjacent(row, col, 1) === 3) {
+    if (Math.random() < chance)
+      switch (Math.random() * 4 | 0) {
+        case 0:
+          if (maze[row-1][col] === 1 && row !== 1) {
+            maze[row-1][col] = 0;
+            return;
+          }
+        case 1:
+          if (maze[row+1][col] === 1 && row !== maze.length - 2) {
+            maze[row+1][col] = 0;
+            return;
+          }
+        case 2:
+          if (maze[row][col-1] === 1 && col !== 1) {
+            maze[row][col-1] = 0;
+            return;
+          }
+        case 3:
+          if (maze[row][col+1] === 1 && col !== maze[row].length - 2) {
+            maze[row][col+1] = 0;
+            return;
+          }
+        default:
+          if (maze[row-1][col] === 1 && row !== 1)
+            maze[row-1][col] = 0;
+          else if (maze[row+1][col] === 1 && row !== maze.length - 2)
+            maze[row+1][col] = 0;
+          else if (maze[row][col-1] === 1 && col !== 1)
+            maze[row][col-1] = 0;
+          else console.error("BOZO ALERT");
+          
+      }
+  }
+  if (maze[row-1][col] === 0 && !dead_visited[row-1][col])
+    remove_dead_ends_recursive(row - 1, col, chance);
+  if (maze[row+1][col] === 0 && !dead_visited[row+1][col])
+    remove_dead_ends_recursive(row + 1, col, chance);
+  if (maze[row][col-1] === 0 && !dead_visited[row][col-1])
+    remove_dead_ends_recursive(row, col - 1, chance);
+  if (maze[row][col+1] === 0 && !dead_visited[row][col+1])
+    remove_dead_ends_recursive(row, col + 1, chance);
+}
 
 function shuffle(array) {
   var currentIndex = array.length, temporaryValue, randomIndex;
