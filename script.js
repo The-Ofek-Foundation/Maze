@@ -600,22 +600,22 @@ function remove_dead_ends_recursive(row, col, chance)	{
         case 0:
           if (maze[row-1][col] === 1 && row !== 1) {
             maze[row-1][col] = 0;
-            return;
+            break;
           }
         case 1:
           if (maze[row+1][col] === 1 && row !== maze.length - 2) {
             maze[row+1][col] = 0;
-            return;
+            break;
           }
         case 2:
           if (maze[row][col-1] === 1 && col !== 1) {
             maze[row][col-1] = 0;
-            return;
+            break;
           }
         case 3:
           if (maze[row][col+1] === 1 && col !== maze[row].length - 2) {
             maze[row][col+1] = 0;
-            return;
+            break;
           }
         default:
           if (maze[row-1][col] === 1 && row !== 1)
