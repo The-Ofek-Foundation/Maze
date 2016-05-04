@@ -1,3 +1,6 @@
+## Update!!!
+ This can now also be found [online][online version]!
+
 # Maze
  A program that makes playable mazes and can save them as png images
 
@@ -32,3 +35,5 @@
 
 
 Enjoy!!!
+
+[online version]:http://theofekfoundation.org/Maze/ "online version"
