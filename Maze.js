@@ -22,8 +22,8 @@ var brush = mazeui.getContext("2d");
 
 function pageReady() {
 	$("#maze-tr-div").css('top', $("#content-wrapper").position().top);
-	docwidth = $("#content-wrapper").outerWidth(true);
-	docheight = $("#content-wrapper").outerHeight(true);
+	docwidth = getElemWidth(document.getElementById('content-wrapper'));
+	docheight = getElemHeight(document.getElementById('content-wrapper'));
 	mazewidth = mazeheight = docwidth < docheight ? docwidth:docheight;
 	dimensions[0] = 23;
 	dimensions[1] = 23;
@@ -56,8 +56,8 @@ $(window).resize(function() {
 
 	$("#maze-tr-div").css('top', $("#content-wrapper").position().top);
 
-	docwidth = $("#content-wrapper").outerWidth(true);
-	docheight = $("#content-wrapper").outerHeight(true);
+	docwidth = getElemWidth(document.getElementById('content-wrapper'));
+	docheight = getElemHeight(document.getElementById('content-wrapper'));
 	resizeMaze();
 	drawMaze();
 });
