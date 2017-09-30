@@ -1,19 +1,16 @@
-var docwidth, docheight;
-var mazewidth, mazeheight;
+var docWidth, docHeight;
+var mazeWidth, mazeHeight;
 var dimensions = new Array(2);
-var blockWidth = 8;
+var blockWidth;
 var maze;
 var startx, starty;
-var mazeStyle = "normal";
-var styleIntensity = 8;
+var mazeStyle, styleIntensity;
 var startMaze = new Array(2);
 var endMaze = new Array(2);
-var animate = false;
+var animate;
 var animation, animationOn, animationInterval;
-var totalAnimationTime = 30;
-var customResolution = false;
-var showStartEnd = true;
-var thinMaze = false;
+var totalAnimationTime, customResolution;
+var showStartEnd, thinMaze;
 var visited, correctPath;
 var deadVisited;
 
@@ -21,52 +18,49 @@ var mazeui = document.getElementById("maze");
 var brush = mazeui.getContext("2d");
 
 function pageReady() {
-	$("#maze-tr-div").css('top', $("#content-wrapper").position().top);
-	docwidth = getElemWidth(contentWrapper);
-	docheight = getElemHeight(contentWrapper);
-	mazewidth = mazeheight = docwidth < docheight ? docwidth:docheight;
-	dimensions[0] = 23;
-	dimensions[1] = 23;
+	getSettings();
 
 	resizeMaze();
-	generateMaze();
+	newGame();
+	setTimeout(resizeSettingsTable, 0);
 };
 
 function resizeMaze() {
-	var recBlockWidth;
-	recBlockWidth = docwidth / dimensions[0] < docheight / dimensions[1] ? (docwidth / dimensions[0]):(docheight / dimensions[1]);
+
+	docWidth = getElemWidth(contentWrapper);
+	docHeight = getElemHeight(contentWrapper);
+	wrapperTop = contentWrapper.offsetTop;
+
+	setElemStyle(getElemId('maze-tr-div'), 'top', wrapperTop + "px");
+
+	var recBlockWidth = docWidth / dimensions[0] < docHeight / dimensions[1] ? (docWidth / dimensions[0]):(docHeight / dimensions[1]);
 	if (!customResolution)
-		blockWidth = (docwidth / dimensions[0] < docheight / dimensions[1] ? (docwidth / dimensions[0] | 0):(docheight / dimensions[1] | 0));
-	mazewidth = blockWidth * dimensions[0];
-	mazeheight = blockWidth * dimensions[1];
-	var recwidth = recBlockWidth * dimensions[0];
-	var recheight = recBlockWidth * dimensions[1];
+		blockWidth = (docWidth / dimensions[0] < docHeight / dimensions[1] ? (docWidth / dimensions[0] | 0):(docHeight / dimensions[1] | 0));
 
-	$('#maze').width(recwidth).height(recheight).css('left', (docwidth - recwidth) / 2).css('top', (docheight - recheight) / 2);
-	mazeui.setAttribute('width', mazewidth);
-	mazeui.setAttribute('height', mazeheight);
+	mazeWidth = blockWidth * dimensions[0];
+	mazeHeight = blockWidth * dimensions[1];
+	var recWidth = recBlockWidth * dimensions[0];
+	var recHeight = recBlockWidth * dimensions[1];
 
-	$('#new-game-menu').css('top', (docheight - $('#new-game-menu').outerHeight()) / 2);
-	$('#new-game-menu').css('left', (docwidth - $('#new-game-menu').outerWidth()) / 2);
+	setElemWidth(mazeui, recWidth);
+	setElemHeight(mazeui, recWidth);
+	setElemStyle(mazeui, 'left', (docWidth - recWidth) / 2 + "px")
+	setElemStyle(mazeui, 'top', (docHeight - recHeight) / 2 + "px")
+	mazeui.setAttribute('width', mazeWidth);
+	mazeui.setAttribute('height', mazeHeight);
+
+	resizeSettingsTable();
 }
 
-$(window).resize(function() {
-	$("#content-wrapper").outerWidth($(window).outerWidth(true));
-	$("#content-wrapper").outerHeight($(window).outerHeight(true) - $("#content-wrapper").position().top);
-
-	$("#maze-tr-div").css('top', $("#content-wrapper").position().top);
-
-	docwidth = getElemWidth(contentWrapper);
-	docheight = getElemHeight(contentWrapper);
+function onResize() {
 	resizeMaze();
 	drawMaze();
-});
-
+}
 
 function clearMaze() {
-	brush.clearRect(0, 0, mazewidth, mazeheight);
+	brush.clearRect(0, 0, mazeWidth, mazeHeight);
 	brush.beginPath();
-	brush.rect(0, 0, mazewidth, mazeheight);
+	brush.rect(0, 0, mazeWidth, mazeHeight);
 	brush.fillStyle = "white";
 	brush.fill();
 	brush.closePath();
@@ -313,8 +307,11 @@ function rect(x, y) {
 	else brush.rect(x * blockWidth, y * blockWidth, blockWidth, blockWidth);
 }
 
-function generateMaze() {
+function newGame() {
 	stopAnimation();
+	getSettings();
+	resizeMaze();
+
 	maze = new Array(dimensions[0]);
 	for (var i = 0; i < maze.length; i++) {
 		maze[i] = new Array(dimensions[1]);
@@ -336,12 +333,24 @@ function generateMaze() {
 		generateAnimationRecursive(startx, starty);
 		startAnimation();
 	} else {
-		generateMazeRecursive(startx, starty);
+		newGameRecursive(startx, starty);
 		drawMaze();
 	}
 }
 
-function generateMazeRecursive(x, y)	{
+function getSettings() {
+	dimensions = gameSettings.getOrSet('dimensions', [23, 23]);
+	mazeStyle = gameSettings.getOrSet('mazeStyle', "normal");
+	styleIntensity = gameSettings.getOrSet('styleIntensity', 8);
+	showStartEnd = gameSettings.getOrSet('showStartEnd', true);
+	thinMaze = gameSettings.getOrSet('thinMaze', false);
+	animate = gameSettings.getOrSet('animate', false);
+	totalAnimationTime = gameSettings.getOrSet('totalAnimationTime', 30);
+	customResolution = gameSettings.getOrSet('customResolution', false);
+	blockWidth = gameSettings.getOrSet('blockWidth', 8);
+}
+
+function newGameRecursive(x, y)	{
 	var tempRandDs = getRandDs(x, y);
 	for (var i = 0; i < tempRandDs.length; i++)
 		switch (tempRandDs[i])	{
@@ -349,28 +358,28 @@ function generateMazeRecursive(x, y)	{
 				if (y - 2 > 0 && maze[x][y-2] == 1)	{
 					maze[x][y-1] = 0;
 					maze[x][y-2] = 0;
-					generateMazeRecursive(x, y-2);
+					newGameRecursive(x, y-2);
 				}
 				break;
 			case 1:
 				if (y + 2 < maze[0].length && maze[x][y+2] == 1)	{
 					maze[x][y+1] = 0;
 					maze[x][y+2] = 0;
-					generateMazeRecursive(x, y+2);
+					newGameRecursive(x, y+2);
 				}
 				break;
 			case 2:
 				if (x + 2 < maze.length && maze[x+2][y] == 1)	{
 					maze[x+1][y] = 0;
 					maze[x+2][y] = 0;
-					generateMazeRecursive(x+2, y);
+					newGameRecursive(x+2, y);
 				}
 				break;
 			case 3:
 				if (x - 2 > 0 && maze[x-2][y] == 1)	{
 					maze[x-1][y] = 0;
 					maze[x-2][y] = 0;
-					generateMazeRecursive(x-2, y);
+					newGameRecursive(x-2, y);
 				}
 				break;
 		}
@@ -657,48 +666,29 @@ function shuffle(array) {
 	return array;
 }
 
-function showNewGameMenu() {
-	$('#new-game-menu').animate({opacity: 0.9}, "slow").css('z-index', 100);
+function getNewSettings() {
+	return {
+		'dimensions': [getInputValue('width'), getInputValue('height')],
+		'mazeStyle': getInputValue('mazeStyle'),
+		'styleIntensity': getInputValue('styleIntensity'),
+		'showStartEnd': getInputValue('showStart'),
+		'thinMaze': getInputValue('thinMaze'),
+		'animate': getInputValue('animate'),
+		'totalAnimationTime': getInputValue('duration'),
+		'customResolution': getInputValue('customResolution'),
+		'blockWidth': getInputValue('blockWidth'),
+	}
 }
 
-$('#new-game').click(showNewGameMenu);
-$('#solve-maze').click(solveMaze);
-
-var dontSubmit;
-
-$('#form-new-game').submit(function() {
-	if (dontSubmit) {
-		dontSubmit = false;
-		return false;
-	}
-
-	dimensions[0] = parseInt($('input[name="width"]').val());
-	dimensions[1] = parseInt($('input[name="height"]').val());
-
-	mazeStyle = $('select[name="maze-style"]').val();
-	styleIntensity = parseFloat($('input[name="style-intensity"]').val());
-
-	showStartEnd = $('input[name="show-start"]').prop('checked');
-	thinMaze = $('input[name="thin-maze"]').prop('checked');
-
-	animate = $('input[name="animate"]').prop('checked');
-	totalAnimationTime = parseFloat($('input[name="duration"]').val());
-
-	customResolution = $('input[name="custom-resolution"]').prop('checked');
-	blockWidth = parseInt($('input[name="block-width"]').val());
-
-	$('#new-game-menu').animate({opacity: 0}, "slow", function() {
-		$(this).css('z-index', -1);
-		resizeMaze();
-		generateMaze();
-	});
-
-	return false;
-});
-
-$('#btn-new-game-cancel').click(function() {
-	dontSubmit = true;
-	$('#new-game-menu').animate({opacity: 0}, "slow", function() {
-		$(this).css('z-index', -1);
-	});
-});
+function populateSettingsForm(settings) {
+	setInputValue('width', dimensions[0]);
+	setInputValue('height', dimensions[1]);
+	setInputValue('mazeStyle', mazeStyle);
+	setInputValue('styleIntensity', styleIntensity);
+	setInputValue('showStart', showStartEnd);
+	setInputValue('thinMaze', thinMaze);
+	setInputValue('animate', animate);
+	setInputValue('duration', totalAnimationTime);
+	setInputValue('customResolution', customResolution);
+	setInputValue('blockWidth', blockWidth);
+}
