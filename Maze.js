@@ -692,3 +692,15 @@ function populateSettingsForm(settings) {
 	setInputValue('customResolution', customResolution);
 	setInputValue('blockWidth', blockWidth);
 }
+
+document.addEventListener('keypress', function (event) {
+	var tempDirection;
+	switch (event.which) {
+		case 115: case 83: // s
+			showSettingsForm();
+			break;
+		case 110: case 78: // n
+			newGame();
+			return;
+	}
+});
